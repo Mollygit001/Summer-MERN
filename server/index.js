@@ -32,7 +32,7 @@ app.use('/auth', authRoutes);
 const PORT = 3000;
 
 app.get('/', (req, res) => {
-  res.send('Hello, World!');
+  res.json({ message: 'Welcome to the MERN Summer Auth API', version: '1.0.0',text:"Hello word" });
 }); 
 
 app.listen(PORT, () => {

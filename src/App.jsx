@@ -6,6 +6,7 @@ import Login from "./components/Login";
 import Layout from "./Layout";
 import Dashboard from "./components/Dashboard";
 import axios from "axios";
+import Register from "./components/Register";
 const App = () => {
   const [userDetails, setUserDetails] = useState(null);
 
@@ -16,12 +17,12 @@ const App = () => {
 
   const isUserLoggedIn = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/auth/is-user-logged-in", {},{
+      const res = await axios.post("http://localhost:3000/auth/is-user-logged-in", {}, {
         withCredentials: true,
       });
       updateUserDetails(res.data.userDetails);
     }
-    catch(err){
+    catch (err) {
       console.error("User not Logged in:", err);
       setUserDetails(null);
     }
@@ -30,9 +31,9 @@ const App = () => {
   useEffect(() => {
     isUserLoggedIn();
   }, []);
-  
+
   return (
-    <Layout>
+    <Layout userDetails={userDetails}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route
@@ -49,6 +50,15 @@ const App = () => {
           path="/Dashboard"
           element={userDetails ? <Dashboard /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/register"
+          element={userDetails ? (
+            <Navigate to="/Dashboard" />
+          ) : (
+            <Register />
+          )}
+        />
+
       </Routes>
     </Layout>
   );

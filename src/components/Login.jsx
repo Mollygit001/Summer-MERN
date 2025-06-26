@@ -1,19 +1,26 @@
+/* eslint-disable no-unused-vars */
+import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom';
 
-const Login = ({updatedDetails}) => {
-  
-  const [form, setForm] = useState({ username: '', password: '' });
+const Login = ({ updatedDetails }) => {
+
+  const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
+
+  const navigate = useNavigate();
 
   // Validation rules
   const validate = () => {
     const newErrors = {};
-    if (!form.username) {
-      newErrors.username = 'username is required';
-    } else if (!/^[a-zA-Z0-9_]{3,16}$/.test(form.username)) {
-      newErrors.username = 'Invalid username';
+    if (!form.email) {
+      newErrors.email = 'email is required';
     }
+    else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(form.email)) {
+      newErrors.email = 'Invalid email address';
+    }
+
     if (!form.password) {
       newErrors.password = 'Password is required';
     } else if (form.password.length < 6) {
@@ -31,12 +38,13 @@ const Login = ({updatedDetails}) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
+      console.log("Checking form submission", form);
       setErrors(validationErrors);
       return;
     }
 
     const body = {
-      username: form.username,
+      email: form.email,
       password: form.password,
     };
 
@@ -48,7 +56,7 @@ const Login = ({updatedDetails}) => {
       const response = await axios.post('http://localhost:3000/auth/login', body, config);
       // Assuming a successful login returns a 200 status and user data
       if (response.status === 200 && response.data) {
-        updatedDetails({ username: body.username, password: body.password });
+        updatedDetails({ email: body.email, password: body.password });
         setErrors({});
         console.log("Login successful");
       } else {
@@ -60,6 +68,28 @@ const Login = ({updatedDetails}) => {
     }
   };
 
+  const handleGoogleLogin = async (credentialResponse) => {
+        try {
+            const idToken = credentialResponse.credential;
+            const response = await axios.post(
+                'http://localhost:3000/auth/googleauth',
+                { idToken },
+                { withCredentials: true }
+            );
+            if (response.status === 200) {
+              updatedDetails({ email: response.data.email, name: response.data.name });
+                setErrors({});
+                console.log("Google login successful");
+                // navigate('/dashboard');
+            } else {
+                setErrors({ message: 'Google registration failed. Try again.' });
+            }
+        } catch (err) {
+            console.error(err);
+            setErrors({ message: 'Google registration failed. Try again.' });
+        }
+    };
+
   return (
     <>
       <div>
@@ -67,12 +97,12 @@ const Login = ({updatedDetails}) => {
           <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 border-2 w-full max-w-md mx-auto p-8 rounded-lg shadow-lg">
             <h1 className="text-3xl font-bold mb-6">Login</h1>
             <div className="mb-4 w-full">
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">username</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
               <input
-                type="text"
-                id="username"
-                name="username"
-                value={form.username}
+                type="email"
+                id="email"
+                name="email"
+                value={form.email}
                 onChange={handleChange}
                 required
                 className={`mt-1 block w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
@@ -101,8 +131,15 @@ const Login = ({updatedDetails}) => {
             >
               Login
             </button>
+            <GoogleLogin onSuccess={handleGoogleLogin} onError={() =>setErrors({message:"Login Failed! Try again."})}/>
           </div>
         </form>
+        <div className="flex items-center justify-center mt-4">
+          <p className="text-sm text-gray-600">Don't have an account? </p>
+          <Link to="/register" className="ml-2 text-blue-600 hover:text-blue-800">
+            Register
+          </Link>
+        </div>
       </div>
     </>
   )
