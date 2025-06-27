@@ -56,7 +56,7 @@ const Login = ({ updatedDetails }) => {
       const response = await axios.post('http://localhost:3000/auth/login', body, config);
       // Assuming a successful login returns a 200 status and user data
       if (response.status === 200 && response.data) {
-        updatedDetails({ email: body.email, password: body.password });
+        updatedDetails(response.data.userDetails);
         setErrors({});
         console.log("Login successful");
       } else {
@@ -77,10 +77,10 @@ const Login = ({ updatedDetails }) => {
                 { withCredentials: true }
             );
             if (response.status === 200) {
-              updatedDetails({ email: response.data.email, name: response.data.name });
+              updatedDetails(response.data.userDetails);
                 setErrors({});
                 console.log("Google login successful");
-                // navigate('/dashboard');
+                navigate('/dashboard');
             } else {
                 setErrors({ message: 'Google registration failed. Try again.' });
             }
