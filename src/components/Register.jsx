@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { GoogleLogin } from '@react-oauth/google';
+import { useDispatch } from 'react-redux'
+import { setUserDetails } from '../features/form/formSlice'
 
 const Register = () => {
     const [form, setForm] = useState({
@@ -12,6 +14,8 @@ const Register = () => {
     })
     const [errors, setErrors] = useState({})
     const navigate = useNavigate()
+    const dispatch = useDispatch()
+
 
     const validate = () => {
         const newErrors = {}
@@ -54,8 +58,9 @@ const Register = () => {
                 { withCredentials: true }
             )
             if (response.status === 201 || response.status === 200) {
+                dispatch(setUserDetails(response.data.userDetails)); 
                 setErrors({})
-                navigate('/dashboard') // Redirect to dashboard on successful registration
+                navigate('/dashboard') 
             } else {
                 setErrors({ message: 'Registration failed. Please try again.' })
             }
@@ -68,7 +73,7 @@ const Register = () => {
         }
 
     }
-    // 👉 Google login handler
+    // Google login handler
     const handleGoogleLogin = async (credentialResponse) => {
         try {
             const idToken = credentialResponse.credential;
@@ -78,6 +83,8 @@ const Register = () => {
                 { withCredentials: true }
             );
             if (response.status === 200) {
+                dispatch(setUserDetails((response.data.userDetails)));
+                setErrors({});
                 navigate('/dashboard');
             } else {
                 setErrors({ message: 'Google registration failed. Try again.' });

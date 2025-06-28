@@ -1,18 +1,17 @@
-/* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from "react";
-import { Routes, Route, useLocation, useNavigate, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./components/Home";
 import Login from "./components/Login";
 import Layout from "./Layout";
 import Dashboard from "./components/Dashboard";
 import axios from "axios";
 import Register from "./components/Register";
-const App = () => {
-  const [userDetails, setUserDetails] = useState(null);
+import { useDispatch, useSelector } from "react-redux";
+import { setUserDetails, clearUserDetails } from "./features/form/formSlice";
 
-  const updateUserDetails = (updatedDetails) => {
-    setUserDetails(updatedDetails);
-  };
+const App = () => {
+  const dispatch = useDispatch();
+  const userDetails = useSelector((state) => state.form.userDetails);
 
 
   const isUserLoggedIn = async () => {
@@ -20,11 +19,11 @@ const App = () => {
       const res = await axios.post("http://localhost:3000/auth/is-user-logged-in", {}, {
         withCredentials: true,
       });
-      updateUserDetails(res.data.userDetails);
+      dispatch(setUserDetails(res.data.userDetails));
     }
     catch (err) {
       console.error("User not Logged in:", err);
-      setUserDetails(null);
+      dispatch(clearUserDetails());
     }
   }
 
@@ -42,7 +41,7 @@ const App = () => {
             userDetails ? (
               <Navigate to="/Dashboard" />
             ) : (
-              <Login updatedDetails={updateUserDetails} />
+              <Login />
             )
           }
         />
@@ -55,7 +54,7 @@ const App = () => {
           element={userDetails ? (
             <Navigate to="/Dashboard" />
           ) : (
-            <Register />
+            <Register/>
           )}
         />
 

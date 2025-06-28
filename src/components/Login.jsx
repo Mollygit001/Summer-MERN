@@ -3,13 +3,16 @@ import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setUserDetails } from '../features/form/formSlice';
 
-const Login = ({ updatedDetails }) => {
+const Login = () => {
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // Validation rules
   const validate = () => {
@@ -54,11 +57,10 @@ const Login = ({ updatedDetails }) => {
 
     try {
       const response = await axios.post('http://localhost:3000/auth/login', body, config);
-      // Assuming a successful login returns a 200 status and user data
       if (response.status === 200 && response.data) {
-        updatedDetails(response.data.userDetails);
+        dispatch(setUserDetails(response.data.userDetails));
         setErrors({});
-        console.log("Login successful");
+        navigate('/dashboard');
       } else {
         setErrors({ message: 'Login failed. Please check your credentials.' });
       }
@@ -77,7 +79,7 @@ const Login = ({ updatedDetails }) => {
                 { withCredentials: true }
             );
             if (response.status === 200) {
-              updatedDetails(response.data.userDetails);
+              dispatch(setUserDetails(response.data.userDetails));
                 setErrors({});
                 console.log("Google login successful");
                 navigate('/dashboard');
