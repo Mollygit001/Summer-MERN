@@ -4,11 +4,16 @@ import bcrypt from 'bcryptjs';
 import User from '../model/Users.js';
 const secret = "1223";
 import { OAuth2Client } from 'google-auth-library';
+import { validationResult } from 'express-validator';
 
 
 const authController = {
 
     login: async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
         try {
             const { email, password } = req.body;
 
