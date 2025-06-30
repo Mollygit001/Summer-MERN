@@ -1,5 +1,5 @@
 import React from 'react';
-import GetCurrentUser from './GetCurrentUser'; // Import the custom hook to get current user
+import GetCurrentUser from '../GetCurrentUser'; // Import the custom hook to get current user
 
 const Dashboard = () => {
 

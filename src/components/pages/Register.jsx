@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { GoogleLogin } from '@react-oauth/google';
 import { useDispatch } from 'react-redux'
-import { setUserDetails } from '../features/form/formSlice'
+import { setUserDetails } from '../../features/form/formSlice'
 
 const Register = () => {
     const [form, setForm] = useState({

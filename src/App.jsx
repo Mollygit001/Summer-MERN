@@ -1,13 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Home from "./components/Home";
-import Login from "./components/Login";
-import Layout from "./Layout";
-import Dashboard from "./components/Dashboard";
-import axios from "axios";
-import Register from "./components/Register";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserDetails, clearUserDetails } from "./features/form/formSlice";
+import axios from "axios";
+import { Home, Login, Dashboard, Register } from "./components/pages";
+import Layout from "./components/layout/Layout";
 
 const App = () => {
   const dispatch = useDispatch();

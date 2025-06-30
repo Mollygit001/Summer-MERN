@@ -6,28 +6,29 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './src/routes/authRoutes.js';
 import mongoose from 'mongoose';
-
-console.log(process.env.MONGO_URI)
-mongoose.connect('mongodb://127.0.0.1:27017/mern-summer').then(() => {
-  console.log('Connected to MongoDB');  
-}).catch(err => {
-  console.error('MongoDB connection error:', err);
-});
+import linkRoutes from './src/routes/linkRoutes.js';
 const app = express();
-
-app.use(express.json());
-
 app.use(cookieParser());
+app.use(express.json());
 
 const corsconfig={
   origin: process.env.CLIENT_ENDPOINT,
   credentials: true,
 }
-
 app.use(cors(corsconfig));
-
-
 app.use('/auth', authRoutes);
+app.use('/links', linkRoutes);
+
+
+
+
+
+
+mongoose.connect('mongodb://127.0.0.1:27017/mern-summer').then(() => {
+  console.log('Connected to MongoDB');  
+}).catch(err => {
+  console.error('MongoDB connection error:', err);
+});
 
 const PORT = 3000;
 
