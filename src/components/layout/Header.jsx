@@ -1,13 +1,15 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 
-const Header = ({ userDetails }) => {
+const Header = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const userDetails = useSelector((state) => state.form.userDetails);
 
   return (
     <header className='bg-blue-600 text-white p-4 text-center'>
-      <h1 className='text-2xl font-bold mb-2'>My MERN App</h1>
+      <h1 className='text-2xl font-bold mb-2'>Affliate++</h1>
       <nav>
         {userDetails ? (
           <>
