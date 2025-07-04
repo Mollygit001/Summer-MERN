@@ -10,6 +10,7 @@ import { serverEndpoint } from "./config/config";
 import UserLayout from "./components/layout/UserLayout";
 import ManageUsers from "./components/pages/users/ManageUsers";
 import Spinner from "./utilities/Spinner";
+import ProtectedRoute from "./rbac/ProtectedRoute";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -42,66 +43,73 @@ const App = () => {
   }
 
   return (
-    <Layout>
-      <Routes>
+
+    <Routes>
 
         //NOTE:Home route is the default route, it redirects to dashboard if user is logged in
-        <Route path="/" element={userDetails ?
-          <UserLayout>
-            <Navigate to="/dashboard" />
-          </UserLayout> :
+      <Route path="/" element={userDetails ?
+        <UserLayout>
+          <Navigate to="/dashboard" />
+        </UserLayout> :
+        <Layout>
           <Home />
-        } />
+        </Layout>
+      } />
 
         //NOTE:Login Route
-        <Route path="/login" element={userDetails ?
-          <Navigate to="/dashboard" /> :
+      <Route path="/login" element={userDetails ?
+        <Navigate to="/dashboard" /> :
+        <Layout>
           <Login />
+        </Layout>
 
-        } />
+      } />
 
         //NOTE:Register Route
-        <Route path="/register" element={userDetails ?
-          <Navigate to="/dashboard" /> :
+      <Route path="/register" element={userDetails ?
+        <Navigate to="/dashboard" /> :
+        <Layout>
           <Register />
-        } />
+        </Layout>
+      } />
 
         //NOTE:Dashboard Route
-        <Route path="/dashboard" element={userDetails ?
-          <UserLayout>
-            <Dashboard />
-          </UserLayout> :
-          <Navigate to="/login" />
+      <Route path="/dashboard" element={userDetails ?
+        <UserLayout>
+          <Dashboard />
+        </UserLayout> :
+        <Navigate to="/login" />
 
-        } />
+      } />
 
 
         //NOTE:Manage Users Route
-        <Route path="/manage-users" element={
-          userDetails && userDetails.role === "admin" ?
-            <UserLayout>
-              <ManageUsers />
-            </UserLayout> :
-            <Navigate to="/dashboard" />
+      <Route path="/manage-users" element={userDetails ?
+        <ProtectedRoute roles={['admin']}>
+          <UserLayout>
+            <ManageUsers />
+          </UserLayout>
+        </ProtectedRoute> :
+        <Navigate to="/login" />
 
-        } />
+      } />
 
         //NOTE:Unauthorized Access Route
-        <Route path="/unauthorized" element={userDetails ?
-          <UserLayout>
-            <UnauthorizedAccess />
-          </UserLayout> :
-          <Navigate to="/login" />
-        } />
+      <Route path="/unauthorized" element={userDetails ?
+        <UserLayout>
+          <UnauthorizedAccess />
+        </UserLayout> :
+        <Navigate to="/login" />
+      } />
 
-        <Route path="/error" element={
-          <UserLayout>
-            <Error />
-          </UserLayout>
-        } />
+      <Route path="/error" element={userDetails ?
+        <UserLayout>
+          <Error />
+        </UserLayout> :
+        <Error />
+      } />
 
-      </Routes>
-    </Layout>
+    </Routes>
   );
 };
 
