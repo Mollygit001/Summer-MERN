@@ -1,33 +1,25 @@
-import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setUserDetails } from '../../features/form/formSlice';
+import { serverEndpoint } from '../../config/config';
+import GoogleAuthButton from '../GoogleAuth';
 
 const Login = () => {
-
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
-
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Validation rules
+  //INFO:Validation function
   const validate = () => {
     const newErrors = {};
-    if (!form.email) {
-      newErrors.email = 'email is required';
-    }
-    else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(form.email)) {
+    if (!form.email) newErrors.email = 'Email is required';
+    else if (!/^[\w.%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email))
       newErrors.email = 'Invalid email address';
-    }
-
-    if (!form.password) {
-      newErrors.password = 'Password is required';
-    } else if (form.password.length < 6) {
+    if (!form.password) newErrors.password = 'Password is required';
+    else if (form.password.length < 6)
       newErrors.password = 'Password must be at least 6 characters';
-    }
     return newErrors;
   };
 
@@ -40,26 +32,18 @@ const Login = () => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
-      console.log("Checking form submission", form);
       setErrors(validationErrors);
       return;
     }
-
-    const body = {
-      email: form.email,
-      password: form.password,
-    };
-
-    const config = {
-      withCredentials: true,
-    };
-
     try {
-      const response = await axios.post('http://localhost:3000/auth/login', body, config);
+      const response = await axios.post(
+        `${serverEndpoint}/auth/login`,
+        form,
+        { withCredentials: true }
+      );
       if (response.status === 200 && response.data) {
         dispatch(setUserDetails(response.data.userDetails));
         setErrors({});
-        navigate('/dashboard');
       } else {
         setErrors({ message: 'Login failed. Please check your credentials.' });
       }
@@ -69,81 +53,69 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async (credentialResponse) => {
-        try {
-            const idToken = credentialResponse.credential;
-            const response = await axios.post(
-                'http://localhost:3000/auth/googleauth',
-                { idToken },
-                { withCredentials: true }
-            );
-            if (response.status === 200) {
-              dispatch(setUserDetails(response.data.userDetails));
-                setErrors({});
-                console.log("Google login successful");
-                navigate('/dashboard');
-            } else {
-                setErrors({ message: 'Google registration failed. Try again.' });
-            }
-        } catch (err) {
-            console.error(err);
-            setErrors({ message: 'Google registration failed. Try again.' });
-        }
-    };
-
   return (
-    <>
-      <div>
-        <form onSubmit={handleSubmit}>
-          <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 border-2 w-full max-w-md mx-auto p-8 rounded-lg shadow-lg">
-            <h1 className="text-3xl font-bold mb-6">Login</h1>
-            <div className="mb-4 w-full">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                className={`mt-1 block w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-              />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-            </div>
-            <div className="mb-6 w-full">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                required
-                className={`mt-1 block w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-              />
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-            </div>
-            {errors.message && (
-              <p className="text-red-500 text-sm mb-4">{errors.message}</p>
-            )}
-            <button
-              type="submit"
-              className="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Login
-            </button>
-            <GoogleLogin onSuccess={handleGoogleLogin} onError={() =>setErrors({message:"Login Failed! Try again."})}/>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+
+        {errors.message && (
+          <div className="mb-4 text-red-600 text-center">{errors.message}</div>
+        )}
+
+        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'
+                } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              placeholder="Enter your email"
+              required
+            />
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'
+                } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              placeholder="Enter your password"
+              required
+            />
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Login
+          </button>
         </form>
-        <div className="flex items-center justify-center mt-4">
-          <p className="text-sm text-gray-600">Don't have an account? </p>
-          <Link to="/register" className="ml-2 text-blue-600 hover:text-blue-800">
+
+        <GoogleAuthButton />
+
+        <p className="mt-4 text-sm text-gray-600 text-center">
+          Don’t have an account?
+          <Link to="/register" className="ml-1 text-blue-600 hover:underline">
             Register
           </Link>
-        </div>
+        </p>
       </div>
-    </>
-  )
-}
+    </div>
+  );
+};
 
-export default Login
+export default Login;

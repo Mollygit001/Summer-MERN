@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import axios from 'axios'
-import { GoogleLogin } from '@react-oauth/google';
 import { useDispatch } from 'react-redux'
 import { setUserDetails } from '../../features/form/formSlice'
+import { serverEndpoint } from '../../config/config';
+import GoogleAuthButton from '../GoogleAuth';
 
 const Register = () => {
     const [form, setForm] = useState({
@@ -13,7 +14,6 @@ const Register = () => {
         confirmPassword: '',
     })
     const [errors, setErrors] = useState({})
-    const navigate = useNavigate()
     const dispatch = useDispatch()
 
 
@@ -22,7 +22,7 @@ const Register = () => {
         if (!form.name.trim()) newErrors.name = 'Name is required'
         if (!form.email.trim()) newErrors.email = 'Email is required'
 
-        if (form.email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email))
+        if (form.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email))
             newErrors.email = 'Invalid email address'
         if (!form.password) newErrors.password = 'Password is required'
         if (form.password.length < 6)
@@ -53,14 +53,15 @@ const Register = () => {
 
         try {
             const response = await axios.post(
-                'http://localhost:3000/auth/register',
+                `${serverEndpoint}/auth/register`,
                 body,
                 { withCredentials: true }
             )
             if (response.status === 201 || response.status === 200) {
-                dispatch(setUserDetails(response.data.userDetails)); 
+                dispatch(setUserDetails(response.data.userDetails));
+                console.log(response.data.userDetails);
+
                 setErrors({})
-                navigate('/dashboard') 
             } else {
                 setErrors({ message: 'Registration failed. Please try again.' })
             }
@@ -73,27 +74,6 @@ const Register = () => {
         }
 
     }
-    // Google login handler
-    const handleGoogleLogin = async (credentialResponse) => {
-        try {
-            const idToken = credentialResponse.credential;
-            const response = await axios.post(
-                'http://localhost:3000/auth/googleauth',
-                { idToken },
-                { withCredentials: true }
-            );
-            if (response.status === 200) {
-                dispatch(setUserDetails((response.data.userDetails)));
-                setErrors({});
-                navigate('/dashboard');
-            } else {
-                setErrors({ message: 'Google registration failed. Try again.' });
-            }
-        } catch (err) {
-            console.error(err);
-            setErrors({ message: 'Google registration failed. Try again.' });
-        }
-    };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -183,14 +163,9 @@ const Register = () => {
                     </button>
                 </form>
                 {/* 🧩 Google Auth Button */}
-                <div className="mt-6">
-                    <GoogleLogin
-                        onSuccess={handleGoogleLogin}
-                        onError={() =>
-                            setErrors({ message: 'Google login failed. Try again.' })
-                        }
-                    />
-                </div>
+
+                <GoogleAuthButton />
+
                 <p className="mt-4 text-sm text-gray-600 text-center">
                     Already have an account?{' '}
                     <Link to="/login" className="text-blue-600 hover:underline">
