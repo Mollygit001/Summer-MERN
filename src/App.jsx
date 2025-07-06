@@ -84,7 +84,7 @@ const App = () => {
 
 
         //NOTE:Manage Users Route
-      <Route path="/manage-users" element={userDetails ?
+      <Route path="/users" element={userDetails ?
         <ProtectedRoute roles={['admin']}>
           <UserLayout>
             <ManageUsers />
