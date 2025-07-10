@@ -1,6 +1,4 @@
-/* eslint-disable no-undef */
 import jwt from 'jsonwebtoken';
-
 
 const authMiddleware = {
     protect: async (request, response, next) => {

@@ -6,6 +6,7 @@ const linkSchema = new mongoose.Schema({
     category: { type: String, required: true },
     thumbnail: { type: String, required: false },
 
+    //NOTE: to be normalized
     clickCount: { type: Number, default: 0 },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
 }, { timestamps: true });
