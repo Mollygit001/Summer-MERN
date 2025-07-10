@@ -59,7 +59,6 @@ const Register = () => {
             )
             if (response.status === 201 || response.status === 200) {
                 dispatch(setUserDetails(response.data.userDetails));
-                console.log(response.data.userDetails);
 
                 setErrors({})
             } else {

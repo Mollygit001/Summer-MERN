@@ -11,6 +11,7 @@ import UserLayout from "./components/layout/UserLayout";
 import ManageUsers from "./components/pages/users/ManageUsers";
 import Spinner from "./utilities/Spinner";
 import ProtectedRoute from "./rbac/ProtectedRoute";
+import ManagePayments from "./components/pages/payments/ManagePayments";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -107,6 +108,14 @@ const App = () => {
           <Error />
         </UserLayout> :
         <Error />
+      } />
+
+        //NOTE:Manage Payments Route
+      <Route path="/manage-payment" element={userDetails ?
+        <UserLayout>
+          <ManagePayments />
+        </UserLayout> :
+        <Navigate to='/login' />
       } />
 
     </Routes>

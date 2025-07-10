@@ -21,7 +21,7 @@ function UserHeader() {
       });
       if (response.ok) {
         setDropdownOpen(false);
-        dispatch(clearUserDetails()); 
+        dispatch(clearUserDetails());
         window.location.href = "/";
       } else {
         console.error("Logout failed");
@@ -104,6 +104,14 @@ function UserHeader() {
                   </li>
                 </Can>
                 <hr className="my-1" />
+                <li>
+                  <Link
+                    to='/manage-payment'
+                    className="block px-4 py-2 hover:bg-gray-100"
+                  >
+                    Manage Payment
+                  </Link>
+                </li>
                 <li>
                   <button
                     className="w-full text-left px-4 py-2 hover:bg-gray-100"
