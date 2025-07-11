@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { serverEndpoint } from '../../../config/config';
 import { usePermissions } from '../../../rbac/permissions';
+import { useNavigate } from 'react-router-dom';
 
 function LinkDashboard() {
   const [errors, setErrors] = useState({});
@@ -15,6 +16,7 @@ function LinkDashboard() {
   const [isEdit, setIsEdit] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const permission = usePermissions();
+  const navigate = useNavigate(); // ✅ added
 
   const handleModalShow = (isEdit, data = {}) => {
     if (isEdit) {
@@ -105,20 +107,16 @@ function LinkDashboard() {
     } catch (error) {
       if (error.response?.data?.code === 'INSUFFICIENT_FUNDS') {
         setErrors({ message: `You do not have enough credits to perform this action. Add funds to your account using Manage Payment option.` });
-        console.error('API Error:', error.response?.data || error.message);
       } else {
         setErrors({ message: 'Something went wrong, please try again' });
-        console.error('API Error:', error.response?.data || error.message);
       }
     }
   };
-
 
   const fetchLinks = async () => {
     try {
       const res = await axios.get(`${serverEndpoint}/links`, { withCredentials: true });
       setLinksData(res.data.data);
-
     } catch {
       setErrors({ message: 'Unable to fetch links at the moment, please try again' });
     }
@@ -188,6 +186,14 @@ function LinkDashboard() {
                       className="text-red-600 hover:text-red-800"
                     >
                       🗑️
+                    </button>
+                  )}
+                  {permission.canViewLink && (
+                    <button
+                      onClick={() => navigate(`/analytics/${row._id}`)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      📊
                     </button>
                   )}
                 </td>

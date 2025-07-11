@@ -178,7 +178,7 @@ const linksController = {
     try {
       const { linkId, from, to } = request.query;
 
-      const link = await Links.findById(linkId);
+      const link = await Links.findById({_id: linkId});
 
       if (!link) {
         return response.status(404).json({
