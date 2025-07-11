@@ -112,6 +112,7 @@ function UserHeader() {
                     Manage Payment
                   </Link>
                 </li>
+                <hr className="my-1" />
                 <li>
                   <button
                     className="w-full text-left px-4 py-2 hover:bg-gray-100"
