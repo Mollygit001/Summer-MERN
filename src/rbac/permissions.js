@@ -36,6 +36,6 @@ export const ROLE_PERMISSIONS = {
 
 
 export const usePermissions = () => {
-    const user = useSelector((state) => state.userDetails);
+    const user = useSelector((state) => state.form.userDetails);
     return ROLE_PERMISSIONS[user?.role] || ROLE_PERMISSIONS.view;
 }
