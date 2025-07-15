@@ -12,11 +12,23 @@ import ManageUsers from "./components/pages/users/ManageUsers";
 import Spinner from "./utilities/Spinner";
 import ProtectedRoute from "./rbac/ProtectedRoute";
 import ManagePayments from "./components/pages/payments/ManagePayments";
+import AnalyticsDashboard from "./components/pages/links/AnalyticsDashboard";
 
 const App = () => {
   const dispatch = useDispatch();
   const userDetails = useSelector((state) => state.form.userDetails);
   const [loading, setLoading] = useState(true);
+
+  const attemptToRefreshToken = async () => {
+    try {
+      const res = await axios.post(`${serverEndpoint}/auth/refresh-token`, {}, {
+        withCredentials: true
+      });
+      dispatch(setUserDetails(res.data.userDetails));
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
 
   const isUserLoggedIn = async () => {
@@ -27,8 +39,14 @@ const App = () => {
       dispatch(setUserDetails(res.data.userDetails));
     }
     catch (err) {
-      console.error("User not Logged in:", err);
-      dispatch(clearUserDetails());
+      if (err.res?.status === 401) {
+        console.log('Token Expired! Attempting to refresh it.')
+        await attemptToRefreshToken();
+      } else {
+
+        console.error("User not Logged in:", err);
+        dispatch(clearUserDetails());
+      }
     }
     finally {
       setLoading(false);
@@ -117,6 +135,14 @@ const App = () => {
         </UserLayout> :
         <Navigate to='/login' />
       } />
+
+      //NOTE:Analytics Route
+      <Route path="/analytics/:linkId" element={userDetails ?
+        <UserLayout>
+          <AnalyticsDashboard />
+        </UserLayout> : <Navigate to='/login' />
+      } />
+
 
     </Routes>
   );
