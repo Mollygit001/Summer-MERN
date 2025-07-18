@@ -71,6 +71,15 @@ const UserSchema = new mongoose.Schema({
         type: subscriptionSchema,
         default: () =>({}),
     },
+    resetPassCode: {
+        type: String,
+        default: null
+    },
+    resetPassCodeExpire:{
+        type: Date,
+        expires: new Date(Date.now()+ 15 * 60 * 1000) //expire after 15 mins
+
+    }
 });
 
 const User = mongoose.model('User', UserSchema);

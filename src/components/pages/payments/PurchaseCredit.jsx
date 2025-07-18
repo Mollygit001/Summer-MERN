@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { CREDIT_PACKS, PLAN_IDS, pricingList } from "../../../config/payments";
 import { useState } from "react";
 import axios from "axios";
-import { serverEndpoint } from "../../config/config";
+import { serverEndpoint } from "../../../config/config";
 import { setUserDetails } from "../../../features/form/formSlice";
 
 function PurchaseCredit() {

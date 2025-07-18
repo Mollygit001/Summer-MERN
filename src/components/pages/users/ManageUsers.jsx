@@ -90,7 +90,7 @@ function ManageUsers() {
 
     setFormLoading(true);
     const body = { email: formData.email, name: formData.name, role: formData.role };
-
+    console.log('Send to backend: ', body);
     try {
       if (isEdit) {
         await axios.put(`${serverEndpoint}/users/${formData.id}`, body, { withCredentials: true });

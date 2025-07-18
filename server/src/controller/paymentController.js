@@ -57,7 +57,7 @@ const paymentController = {
             const user = await User.findById({ _id: request.user.id });
             user.credits += Number(credits);
             await user.save();
-            response.json({userDetails: user });
+            response.json({ userDetails: user });
         } catch (error) {
             console.log(error);
             response.status(500).json({
@@ -128,17 +128,16 @@ const paymentController = {
 
     handleWebhookEvent: async (req, res) => {
         try {
-            log("Received webhook event:", req.body);
+
 
             const signature = req.headers['x-razorpay-signature'];
             const body = req.body;
 
-            const exprectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
+            const exprectedSignature = crypto
+                .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
                 .update(body)
                 .digest('hex');
             if (signature !== exprectedSignature) {
-                log("Invalid signature received:", signature);
-                log("Expected signature:", exprectedSignature);
                 return res.status(400).send({ error: "Invalid signature" });
             }
 

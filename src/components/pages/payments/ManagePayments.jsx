@@ -4,6 +4,7 @@ import PendingConfirmation from './PendingConfirmation'
 import Subscription from './Subscription'
 function ManagePayments() {
   const userDetails = useSelector((state) => state.form.userDetails);
+  console.log(userDetails);
   const confirmationStatus = [
     'created', 'pending', 'authenticated'
   ];
