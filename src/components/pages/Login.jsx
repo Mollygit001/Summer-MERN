@@ -1,39 +1,19 @@
 /* eslint-disable no-unused-vars */
 import axios from 'axios';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setUserDetails } from '../../features/form/formSlice';
 import { serverEndpoint } from '../../config/config';
 import GoogleAuthButton from '../GoogleAuth';
 import { AnimatePresence, motion } from 'framer-motion';
+import ResetPasswordModal from '../ResetPasswordModal'
 
 const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const dispatch = useDispatch();
-
   const [showModal, setShowModal] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetError, setResetError] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState(new Array(6).fill(""));
-  const [otpError, setOtpError] = useState("");
-  const [timer, setTimer] = useState(15 * 60);
-
-  useEffect(() => {
-    let interval;
-    if (otpSent && timer > 0) {
-      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [otpSent, timer]);
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
 
   const validate = () => {
     const newErrors = {};
@@ -72,46 +52,6 @@ const Login = () => {
       console.error(error);
       setErrors({ message: 'Login failed. Please check your credentials.' });
     }
-  };
-
-  const handleResetPassword = async () => {
-    if (!resetEmail) {
-      setResetError("Email is required.");
-      return;
-    }
-
-    try {
-      await axios.post(`${serverEndpoint}/auth/send-reset-otp`, { email: resetEmail });
-      setOtpSent(true);
-      setTimer(15 * 60);
-      setResetError('');
-    } catch (error) {
-      setResetError('Failed to send OTP. Please try again.');
-    }
-  };
-
-  const handleOtpChange = (element, index) => {
-    if (!/^[0-9]?$/.test(element.value)) return;
-
-    const newOtp = [...otp];
-    newOtp[index] = element.value;
-    setOtp(newOtp);
-
-    if (element.nextSibling && element.value) {
-      element.nextSibling.focus();
-    }
-  };
-
-  const handleVerifyOtp = () => {
-    const enteredOtp = otp.join("");
-    if (enteredOtp.length < 6) {
-      setOtpError("Please enter the complete 6-digit code.");
-      return;
-    }
-
-    // Dummy success logic
-    alert("OTP Verified! Proceed to reset password.");
-    setShowModal(false);
   };
 
   return (
@@ -192,85 +132,7 @@ const Login = () => {
         </form>
 
         <AnimatePresence>
-          {showModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative"
-              >
-                <h2 className="text-lg font-semibold mb-4">
-                  {otpSent ? "Enter OTP" : "Reset Password"}
-                </h2>
-
-                {!otpSent ? (
-                  <>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input
-                      type="email"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter your registered email"
-                    />
-                    {resetError && <p className="text-red-500 text-xs mt-1">{resetError}</p>}
-
-                    <div className="mt-4 flex justify-end space-x-2">
-                      <button
-                        onClick={() => setShowModal(false)}
-                        className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleResetPassword}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                      >
-                        Send OTP
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-green-600 text-sm mb-2">OTP sent to your email.</p>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Expires in: <span className="font-semibold">{formatTime(timer)}</span>
-                    </p>
-
-                    <div className="flex justify-center gap-2">
-                      {otp.map((digit, index) => (
-                        <input
-                          key={index}
-                          type="text"
-                          maxLength="1"
-                          value={digit}
-                          onChange={(e) => handleOtpChange(e.target, index)}
-                          className="w-10 h-10 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                        />
-                      ))}
-                    </div>
-                    {otpError && <p className="text-red-500 text-xs mt-2 text-center">{otpError}</p>}
-
-                    <div className="mt-4 flex justify-end space-x-2">
-                      <button
-                        onClick={() => setShowModal(false)}
-                        className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleVerifyOtp}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                      >
-                        Verify OTP
-                      </button>
-                    </div>
-                  </>
-                )}
-              </motion.div>
-            </div>
-          )}
+          <ResetPasswordModal showModal={showModal} setShowModal={setShowModal} />
         </AnimatePresence>
 
         <div className="my-4">
