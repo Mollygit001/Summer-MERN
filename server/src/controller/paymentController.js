@@ -2,7 +2,7 @@ import { PLANS_ID, CREDITS_PACK } from "../constants/payments.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import User from "../model/Users.js";
-import { log } from "console";
+import logger from "../utilities/logger.js";
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -59,14 +59,14 @@ const paymentController = {
             await user.save();
             response.json({ userDetails: user });
         } catch (error) {
-            console.log(error);
+            logger.error('Error verifying order:', error);
             response.status(500).json({
                 message: 'Internal server error'
             });
         }
     },
 
-    creatSubscription: async (req, res) => {
+    createSubscription: async (req, res) => {
         try {
             const { plan_name } = req.body;
             if (!PLANS_ID[plan_name]) {
@@ -83,9 +83,9 @@ const paymentController = {
                     userId: req.user.id,
                 },
             })
-            res.status(200).json(subscription);
+            res.status(200).json({ subscription });
         } catch (error) {
-            console.error("Error creating subscription:", error);
+            logger.error("Error creating subscription:", error);
             res.status(500).json({ error: "Failed to create subscription" });
         }
     },
@@ -121,7 +121,7 @@ const paymentController = {
                 }
             });
         } catch (error) {
-            console.error("Error verifying payment:", error);
+            logger.error("Error verifying payment:", error);
             res.status(500).json({ error: "Failed to verify payment" });
         }
     },
@@ -133,16 +133,16 @@ const paymentController = {
             const signature = req.headers['x-razorpay-signature'];
             const body = req.body;
 
-            const exprectedSignature = crypto
+            const expectedSignature = crypto
                 .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
                 .update(body)
                 .digest('hex');
-            if (signature !== exprectedSignature) {
+            if (signature !== expectedSignature) {
                 return res.status(400).send({ error: "Invalid signature" });
             }
 
-            const payload = JSON.parse(body);
-            log("Parsed payload:", JSON.stringify(payload, 0, 2));
+            const payload = JSON.parse(body.toString());
+            logger.info("Parsed payload:", JSON.stringify(payload, 0, 2));
 
             const event = payload.event;
             const subscriptionData = payload.payload.subscription.entity;
@@ -150,7 +150,7 @@ const paymentController = {
             const userId = subscriptionData.notes?.userId;
 
             if (!userId) {
-                log("User ID not found in subscription notes");
+                logger.info("User ID not found in subscription notes");
                 return res.status(400).send({ error: "User ID not found in subscription notes" });
             }
 
@@ -169,7 +169,7 @@ const paymentController = {
                     newStatus = 'completed';
                     break;
                 default:
-                    log("Unhandled event type:", event);
+                    logger.info("Unhandled event type:", event);
                     return res.status(200).send({ message: "Event type not handled" });
             }
 
@@ -194,32 +194,35 @@ const paymentController = {
             );
 
             if (!user) {
-                log("User not found with ID:", userId);
+                logger.info("User not found with ID:", userId);
                 return res.status(404).send({ error: "User not found" });
             }
 
-            log(`Updated user subscription status to ${newStatus} for user ID: ${user.name}`);
+            logger.info(`Updated user subscription status to ${newStatus} for user ID: ${user.name}`);
             return res.status(200).send({ message: "Webhook event handled successfully", user: user });
 
         } catch (error) {
-            console.error("Error handling webhook event:", error);
+            logger.error("Error handling webhook event:", error);
             res.status(500).json({ error: "Failed to handle webhook event" });
         }
     },
 
     cancelSubscription: async (req, res) => {
+        const { subscription_id } = req.body;
+        logger.info("Cancelling subscription:", subscription_id);
+
         try {
-            const { subscription_id } = req.body;
             if (!subscription_id) {
                 return res.status(400).json({ error: "Subscription ID is required" });
             }
 
             const subscription = await razorpay.subscriptions.cancel(subscription_id);
+            logger.info("Cancelled subscription:", subscription);
 
 
             res.status(200).json({ message: "Subscription cancelled successfully", subscription: subscription });
         } catch (error) {
-            console.error("Error cancelling subscription:", error);
+            logger.error("Error cancelling subscription:", error);
             res.status(500).json({ error: "Failed to cancel subscription" });
         }
     }

@@ -3,13 +3,21 @@ import Links from "../model/Links.js";
 import Clicks from "../model/Clicks.js";
 import User from '../model/Users.js'
 import axios from "axios";
+import generateUploadSignature from "../services/cloudinaryService.js";
+import { validationResult } from "express-validator";
+import logger from "../utilities/logger.js";
 
 const linksController = {
   create: async (request, response) => {
-    const { campaignTitle, originalUrl, category } = request.body;
+    const { campaignTitle, originalUrl, category, thumbnail } = request.body;
+
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+      return response.status(400).json({ errors: errors.array() });
+    }
     try {
-      const user = await User.findById({_id: request.user.id});
-      if(user.credits< 1){
+      const user = await User.findById({ _id: request.user.id });
+      if (user.credits < 1) {
         return response.status(400).json({
           code: 'INSUFFICIENT_FUNDS',
           message: 'insufficient funds'
@@ -19,6 +27,7 @@ const linksController = {
         campaignTitle: campaignTitle,
         originalUrl: originalUrl,
         category: category,
+        thumbnail: thumbnail,
         user: request.user.role === 'admin' ? request.user.id : request.user.adminId,
       });
 
@@ -28,7 +37,7 @@ const linksController = {
         message: 'Link created'
       });
     } catch (error) {
-      console.log(error);
+      logger.error('Error creating link:', error);
       return response.status(500).json({ error: 'Internal server error for link create' });
     }
   },
@@ -39,7 +48,7 @@ const linksController = {
       const links = await Links.find({ user: userId }).sort({ createdAt: -1 });
       return response.json({ data: links });
     } catch (error) {
-      console.log(error);
+      logger.error('Error getting all links:', error);
       return response.status(500).json({ error: 'Internal server error' });
     }
   },
@@ -62,7 +71,7 @@ const linksController = {
 
       response.json({ data: link });
     } catch (error) {
-      console.log(error);
+      logger.error('Error getting link:', error);
       return response.status(500).json({ error: 'Internal server error' });
     }
   },
@@ -84,15 +93,16 @@ const linksController = {
         return response.status(403).json({ error: 'Unauthorized access' });
       }
 
-      const { campaignTitle, originalUrl, category } = request.body;
+      const { campaignTitle, originalUrl, category, thumbnail } = request.body;
       link = await Links.findByIdAndUpdate(linkId, {
         campaignTitle: campaignTitle,
         originalUrl: originalUrl,
-        category: category
+        category: category,
+        thumbnail: thumbnail
       }, { new: true });
       response.json({ data: link });
     } catch (error) {
-      console.log(error);
+      logger.error('Error updating link:', error);
       return response.status(500).json({ error: 'Internal server error' });
     }
   },
@@ -117,7 +127,7 @@ const linksController = {
       await link.deleteOne();
       response.json({ message: 'Link deleted' });
     } catch (error) {
-      console.log(error);
+      logger.error('Error deleting link:', error);
       return response.status(500).json({ error: 'Internal server error' });
     }
   },
@@ -169,7 +179,7 @@ const linksController = {
 
       response.redirect(link.originalUrl);
     } catch (error) {
-      console.log(error);
+      logger.error('Error redirecting link:', error);
       return response.status(500).json({ error: 'Internal server error for redirect' });
     }
   },
@@ -178,7 +188,7 @@ const linksController = {
     try {
       const { linkId, from, to } = request.query;
 
-      const link = await Links.findById({_id: linkId});
+      const link = await Links.findById({ _id: linkId });
 
       if (!link) {
         return response.status(404).json({
@@ -199,10 +209,10 @@ const linksController = {
       };
 
       if (from && to) {
-        query.clickedAt = { $gte: new Date(from), $lte: new Date(to) };
+        query.createdAt = { $gte: new Date(from), $lte: new Date(to) };
       }
 
-      const data = await Clicks.find(query).sort({ clickedAt: -1 });
+      const data = await Clicks.find(query).sort({ createdAt: -1 });
       response.json(data);
 
     } catch (error) {
@@ -211,7 +221,25 @@ const linksController = {
         message: 'Internal Server Error for analytics'
       })
     }
+  },
+  createUploadSignature: async (request, response) => {
+    try {
+      const { signature, timestamp } = generateUploadSignature();
+      response.json({
+        signature: signature,
+        timestamp: timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY,
+        cloudName: process.env.CLOUDINARY_NAME
+      })
+
+    }
+    catch (error) {
+      console.log(error)
+      response.status(500).json({
+        message: 'Internal Server Error'
+      })
+    }
   }
-};
+}
 
 export default linksController;

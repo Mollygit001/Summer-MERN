@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import logger from '../utilities/logger.js';
 
 const authMiddleware = {
     protect: async (request, response, next) => {
@@ -12,7 +13,7 @@ const authMiddleware = {
             request.user = user;
             next();
         } catch (error) {
-            console.log(error);
+            logger.error('Auth middleware error:', error);
             return response.status(500).json({ error: 'Internal server error' });
         }
     },
